@@ -104,8 +104,23 @@ def save_results():
 @app.route('/detections')
 def get_detections():
     detections = Detection.query.all()
-    users_list = [{'id': detection.id, 'filename': f" http://{FLASK_IP_ADDR}:5000/detections/{detection.filename}"} for detection in detections]
-    return jsonify(users_list)
+    detection_list = [
+        {'id': detection.id, \
+         'img_src_url': f"http://{FLASK_IP_ADDR}:5000/detections/{detection.filename}", \
+         'g1': detection.g1, \
+         'g2': detection.g2, \
+         'g3': detection.g3, \
+         'g4': detection.g4, \
+         'veryDarkBrown': detection.veryDarkBrown, \
+         'brown': detection.brown, \
+         'partlyPurple': detection.partlyPurple, \
+         'totalPurple': detection.totalPurple, \
+         'mouldy': detection.mouldy, \
+         'insectInfested': detection.insectInfested, \
+         'slaty': detection.slaty,\
+         'germinated': detection.germinated, \
+         'beanGrade': detection.beanGrade } for detection in detections]
+    return jsonify(detection_list)
     
 @app.route('/detections/<string:filename>')
 def get_image(filename):
