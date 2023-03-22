@@ -109,9 +109,7 @@ def get_detections():
     
 @app.route('/detections/<string:filename>')
 def get_image(filename):
-    
     detection = Detection.query.filter_by(filename=filename).first()
-
     if not detection:
         detection = TempDetection.query.filter_by(filename=filename).first()
     
