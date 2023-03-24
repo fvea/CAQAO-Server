@@ -1,12 +1,15 @@
 from flask import Flask, request, send_file, jsonify
 from PIL import Image
 
+from urllib.parse import urlparse
 from datetime import datetime
 import socket
 import torch
 import io
 import os
 import secrets
+import uuid
+import random
 
 from db import db_init, db
 from model import Detection, TempDetection
@@ -58,7 +61,7 @@ def assess():
         temp_detection = TempDetection(
             image=image_detection_bytes,
             mimetype=image_file.mimetype,
-            filename=f"{datetime.now().strftime(DATETIME_FORMAT)}.jpg",
+            filename=str(uuid.uuid4()) + str(random.randint(1, 10000)) + '.jpg',
             beanGrade=bean_grade,
             **class_counts
         )
@@ -73,7 +76,12 @@ def save_results():
 
     if request.method == "POST":
         # save the temporary detection to main detection table
-        temp_detection = db.session.query(TempDetection).order_by(TempDetection.id.desc()).first()
+
+        image_src_url = str(request.form["imgSrcUrl"])
+        filename = os.path.basename(urlparse(image_src_url).path)
+        print(image_src_url)
+
+        temp_detection = TempDetection.query.filter_by(filename=filename).first()
         detection = Detection(
             image=temp_detection.image,
             mimetype=temp_detection.mimetype,
@@ -96,7 +104,7 @@ def save_results():
         db.session.add(detection)
         db.session.commit()
         # delete the temporary detections
-        db.session.query(TempDetection).delete()
+        db.session.delete(temp_detection)
         db.session.commit()
 
         return "Assessment Results Saved", 200
